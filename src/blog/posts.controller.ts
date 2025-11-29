@@ -15,7 +15,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './posts.service';
 import { ListPostsQueryDto } from './dto/list-posts-query.dto';
-import { ApiKeyGuard } from '../common/guards/api-key.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Blog Posts')
 @Controller('blog/posts')
@@ -32,19 +32,19 @@ export class PostsController {
     return this.postsService.findOne(id);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @PostMethod()
   create(@Body() dto: CreatePostDto) {
     return this.postsService.create(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePostDto) {
     return this.postsService.update(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.postsService.remove(id);

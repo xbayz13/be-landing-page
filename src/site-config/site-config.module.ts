@@ -9,7 +9,6 @@ import { Feature } from './entities/feature.entity';
 import { Testimonial } from './entities/testimonial.entity';
 import { CallToActionBlock } from './entities/call-to-action-block.entity';
 import { FooterLink } from './entities/footer-link.entity';
-import { ApiKeyGuard } from '../common/guards/api-key.guard';
 import { BrandService } from './services/brand.service';
 import { HeroService } from './services/hero.service';
 import { NavigationService } from './services/navigation.service';
@@ -45,8 +44,6 @@ import { SiteConfigAggregatorService } from './services/site-config-aggregator.s
     SiteConfigAggregatorService,
     // Facade (backward compatibility)
     SiteConfigService,
-    // Guards
-    ApiKeyGuard,
   ],
   exports: [
     SiteConfigService,

@@ -13,7 +13,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ApiKeyGuard } from '../common/guards/api-key.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Blog Categories')
 @Controller('blog/categories')
@@ -30,13 +30,13 @@ export class CategoriesController {
     return this.categoriesService.findOne(id);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -45,7 +45,7 @@ export class CategoriesController {
     return this.categoriesService.update(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.categoriesService.remove(id);

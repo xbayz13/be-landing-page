@@ -52,7 +52,10 @@ DATABASE_PASSWORD=            # untuk Homebrew: biasanya kosong (trust auth)
 DATABASE_NAME=lp-cms
 DATABASE_SSL=false
 DATABASE_SYNCHRONIZE=true   # set false di staging/production
-ADMIN_API_KEY=change-me     # digunakan untuk endpoint terproteksi
+JWT_SECRET=super-secret-change-me      # secret untuk tanda tangan JWT
+JWT_EXPIRES_IN=3600                    # durasi token dalam detik (default 1 jam)
+SUPERADMIN_EMAIL=superadmin@lp-cms.local   # optional: override default seed email
+SUPERADMIN_PASSWORD=Pass@word123           # optional: override default seed password
 ```
 
 **Catatan untuk PostgreSQL Homebrew:**
@@ -90,8 +93,9 @@ Semua endpoint berada di bawah `/api`.
 
 ### Keamanan API
 
-- Endpoint mutasi (POST/PUT/PATCH/DELETE) menggunakan header `x-api-key`.
-- Set nilai `ADMIN_API_KEY` di environment NestJS (dan gunakan nilai yang sama di Next.js server untuk halaman `/admin`).
+- Endpoint mutasi (POST/PUT/PATCH/DELETE) dilindungi dengan JWT bearer token.
+- Login melalui `POST /api/auth/login` dengan payload `{ "email": "...", "password": "..." }`.
+- Gunakan token yang diterima sebagai `Authorization: Bearer <token>` pada request selanjutnya (termasuk aksi yang dipanggil dari Next.js admin).
 
 ## Pengembangan Selanjutnya
 
@@ -110,3 +114,11 @@ npm run build
 npm run db:migrate  # jalankan migration TypeORM
 npm run db:seed     # isi sample data
 ```
+
+### Akun Superadmin (Seed)
+
+- `npm run db:seed` otomatis membuat akun superadmin (table `users`).
+- Nilai default:
+  - Email: `superadmin@lp-cms.local`
+  - Password: `Pass@word123` (akan di-hash menggunakan bcrypt).
+- Ganti kredensial segera setelah login pertama; Anda bisa override nilai default lewat environment `SUPERADMIN_EMAIL` dan `SUPERADMIN_PASSWORD` sebelum menjalankan seed.

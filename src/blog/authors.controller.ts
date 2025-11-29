@@ -13,7 +13,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthorsService } from './authors.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
-import { ApiKeyGuard } from '../common/guards/api-key.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Blog Authors')
 @Controller('blog/authors')
@@ -30,19 +30,19 @@ export class AuthorsController {
     return this.authorsService.findOne(id);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateAuthorDto) {
     return this.authorsService.create(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAuthorDto) {
     return this.authorsService.update(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.authorsService.remove(id);

@@ -16,9 +16,12 @@ class EnvironmentVariables {
   @IsString()
   SITE_BASE_URL!: string;
 
+  @IsString()
+  JWT_SECRET!: string;
+
   @IsOptional()
   @IsString()
-  ADMIN_API_KEY?: string;
+  JWT_EXPIRES_IN?: string;
 
   @IsString()
   DATABASE_HOST!: string;
@@ -41,6 +44,14 @@ class EnvironmentVariables {
 
   @IsBoolean()
   DATABASE_SYNCHRONIZE!: boolean;
+
+  @IsOptional()
+  @IsString()
+  SUPERADMIN_EMAIL?: string;
+
+  @IsOptional()
+  @IsString()
+  SUPERADMIN_PASSWORD?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

@@ -2,7 +2,10 @@ export default () => ({
   app: {
     port: parseInt(process.env.PORT ?? '3000', 10),
     baseUrl: process.env.SITE_BASE_URL ?? 'http://localhost:3000',
-    adminApiKey: process.env.ADMIN_API_KEY ?? '',
+  },
+  auth: {
+    jwtSecret: process.env.JWT_SECRET ?? 'change-me',
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
   },
   database: {
     host: process.env.DATABASE_HOST ?? 'localhost',

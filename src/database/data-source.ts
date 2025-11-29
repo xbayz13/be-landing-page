@@ -10,6 +10,7 @@ import { FooterLink } from '../site-config/entities/footer-link.entity';
 import { Author } from '../blog/entities/author.entity';
 import { Category } from '../blog/entities/category.entity';
 import { Post } from '../blog/entities/post.entity';
+import { User } from '../auth/entities/user.entity';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -31,6 +32,7 @@ const dataSource = new DataSource({
     Author,
     Category,
     Post,
+    User,
   ],
   migrations: ['dist/database/migrations/*.js'],
 });

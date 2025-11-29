@@ -23,7 +23,7 @@ import { UpdateTestimonialDto } from './dto/update-testimonial.dto';
 import { UpsertBrandSettingDto } from './dto/upsert-brand-setting.dto';
 import { UpsertHeroSectionDto } from './dto/upsert-hero-section.dto';
 import { SiteConfigService } from './site-config.service';
-import { ApiKeyGuard } from '../common/guards/api-key.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Site Config')
 @Controller('site-config')
@@ -40,7 +40,7 @@ export class SiteConfigController {
     return this.siteConfigService.getBrand();
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('brand')
   upsertBrand(@Body() dto: UpsertBrandSettingDto) {
     return this.siteConfigService.upsertBrand(dto);
@@ -51,7 +51,7 @@ export class SiteConfigController {
     return this.siteConfigService.getHero();
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('hero')
   upsertHero(@Body() dto: UpsertHeroSectionDto) {
     return this.siteConfigService.upsertHero(dto);
@@ -62,13 +62,13 @@ export class SiteConfigController {
     return this.siteConfigService.listNavigation();
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('navigation')
   createNavigation(@Body() dto: CreateNavigationLinkDto) {
     return this.siteConfigService.createNavigation(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('navigation/:id')
   updateNavigation(
     @Param('id', ParseUUIDPipe) id: string,
@@ -77,7 +77,7 @@ export class SiteConfigController {
     return this.siteConfigService.updateNavigation(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('navigation/:id')
   removeNavigation(@Param('id', ParseUUIDPipe) id: string) {
     return this.siteConfigService.removeNavigation(id);
@@ -88,13 +88,13 @@ export class SiteConfigController {
     return this.siteConfigService.listFeatures();
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('features')
   createFeature(@Body() dto: CreateFeatureDto) {
     return this.siteConfigService.createFeature(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('features/:id')
   updateFeature(
     @Param('id', ParseUUIDPipe) id: string,
@@ -103,7 +103,7 @@ export class SiteConfigController {
     return this.siteConfigService.updateFeature(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('features/:id')
   removeFeature(@Param('id', ParseUUIDPipe) id: string) {
     return this.siteConfigService.removeFeature(id);
@@ -114,13 +114,13 @@ export class SiteConfigController {
     return this.siteConfigService.listTestimonials();
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('testimonials')
   createTestimonial(@Body() dto: CreateTestimonialDto) {
     return this.siteConfigService.createTestimonial(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('testimonials/:id')
   updateTestimonial(
     @Param('id', ParseUUIDPipe) id: string,
@@ -129,7 +129,7 @@ export class SiteConfigController {
     return this.siteConfigService.updateTestimonial(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('testimonials/:id')
   removeTestimonial(@Param('id', ParseUUIDPipe) id: string) {
     return this.siteConfigService.removeTestimonial(id);
@@ -140,13 +140,13 @@ export class SiteConfigController {
     return this.siteConfigService.listCtas();
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('cta-blocks')
   createCta(@Body() dto: CreateCtaBlockDto) {
     return this.siteConfigService.createCta(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('cta-blocks/:id')
   updateCta(
     @Param('id', ParseUUIDPipe) id: string,
@@ -155,7 +155,7 @@ export class SiteConfigController {
     return this.siteConfigService.updateCta(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('cta-blocks/:id')
   removeCta(@Param('id', ParseUUIDPipe) id: string) {
     return this.siteConfigService.removeCta(id);
@@ -166,13 +166,13 @@ export class SiteConfigController {
     return this.siteConfigService.listFooterLinks();
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('footer-links')
   createFooterLink(@Body() dto: CreateFooterLinkDto) {
     return this.siteConfigService.createFooterLink(dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Put('footer-links/:id')
   updateFooterLink(
     @Param('id', ParseUUIDPipe) id: string,
@@ -181,7 +181,7 @@ export class SiteConfigController {
     return this.siteConfigService.updateFooterLink(id, dto);
   }
 
-  @UseGuards(ApiKeyGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('footer-links/:id')
   removeFooterLink(@Param('id', ParseUUIDPipe) id: string) {
     return this.siteConfigService.removeFooterLink(id);

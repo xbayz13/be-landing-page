@@ -15,6 +15,8 @@ import { FooterLink } from '../site-config/entities/footer-link.entity';
 import { Category } from '../blog/entities/category.entity';
 import { Author } from '../blog/entities/author.entity';
 import { Post, PostStatus } from '../blog/entities/post.entity';
+import { User } from '../auth/entities/user.entity';
+import { hash } from 'bcryptjs';
 
 async function seed() {
   await dataSource.initialize();
@@ -27,6 +29,7 @@ async function seed() {
     await seedCtas();
     await seedFooter();
     await seedBlog();
+    await seedSuperAdmin();
     console.log('Seed completed');
   } finally {
     await dataSource.destroy();
@@ -196,6 +199,27 @@ async function seedBlog() {
     seoDescription:
       'Pelajari bagaimana modul Site Config membantu tim marketing bergerak cepat.',
   });
+}
+
+async function seedSuperAdmin() {
+  const repo = dataSource.getRepository(User);
+  const defaultEmail = process.env.SUPERADMIN_EMAIL ?? 'superadmin@lp-cms.local';
+  const existing = await repo.findOne({ where: { email: defaultEmail } });
+  if (existing) {
+    return;
+  }
+
+  const password = process.env.SUPERADMIN_PASSWORD ?? 'Pass@word123';
+  const passwordHash = await hash(password, 10);
+  await repo.save({
+    email: defaultEmail,
+    passwordHash,
+    role: 'superadmin',
+  });
+
+  console.log(
+    `Superadmin seeded with email ${defaultEmail}. Please rotate the password immediately.`,
+  );
 }
 
 seed().catch((error) => {

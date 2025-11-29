@@ -9,12 +9,11 @@ import { PostsService } from './posts.service';
 import { Author } from './entities/author.entity';
 import { Category } from './entities/category.entity';
 import { Post } from './entities/post.entity';
-import { ApiKeyGuard } from '../common/guards/api-key.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Author, Category, Post])],
   controllers: [AuthorsController, CategoriesController, PostsController],
-  providers: [AuthorsService, CategoriesService, PostsService, ApiKeyGuard],
+  providers: [AuthorsService, CategoriesService, PostsService],
   exports: [AuthorsService, CategoriesService, PostsService],
 })
 export class BlogModule {}

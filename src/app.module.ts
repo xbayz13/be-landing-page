@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { SiteConfigModule } from './site-config/site-config.module';
 import { BlogModule } from './blog/blog.module';
 import { SeoModule } from './seo/seo.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { SeoModule } from './seo/seo.module';
     SiteConfigModule,
     BlogModule,
     SeoModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
