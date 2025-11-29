@@ -16,7 +16,17 @@ API NestJS untuk mengelola konten landing page perusahaan + blog. Struktur ini m
 cd nestjs
 npm install
 cp env.example .env   # sesuaikan kredensial PostgreSQL lokal
-createdb lp-cms       # atau gunakan nama lain sesuai .env
+
+# Setup database (pilih salah satu):
+
+# Untuk PostgreSQL via Homebrew (default):
+createdb lp-cms
+# Note: DATABASE_USER akan sama dengan username macOS Anda (cek dengan: psql postgres -c "\du")
+# DATABASE_PASSWORD bisa dikosongkan jika menggunakan trust auth
+
+# Untuk PostgreSQL standar (role postgres):
+createdb -U postgres lp-cms
+
 npm run start:dev
 ```
 
@@ -37,13 +47,18 @@ PORT=3000
 SITE_BASE_URL=http://localhost:3000
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
-DATABASE_USER=postgres
-DATABASE_PASSWORD=postgres
+DATABASE_USER=ikhsanpahdian  # untuk Homebrew: gunakan username macOS Anda
+DATABASE_PASSWORD=            # untuk Homebrew: biasanya kosong (trust auth)
 DATABASE_NAME=lp-cms
 DATABASE_SSL=false
 DATABASE_SYNCHRONIZE=true   # set false di staging/production
 ADMIN_API_KEY=change-me     # digunakan untuk endpoint terproteksi
 ```
+
+**Catatan untuk PostgreSQL Homebrew:**
+- User database adalah username macOS Anda (bukan `postgres`)
+- Password bisa dikosongkan jika menggunakan trust authentication (default Homebrew)
+- Cek user yang tersedia dengan: `psql postgres -c "\du"`
 
 ## Ringkasan Endpoint
 

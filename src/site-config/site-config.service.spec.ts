@@ -1,126 +1,152 @@
-import { Repository } from 'typeorm';
 import { SiteConfigService } from './site-config.service';
-import { BrandSetting } from './entities/brand-setting.entity';
-import { HeroMediaType, HeroSection } from './entities/hero-section.entity';
-import { NavigationLink } from './entities/navigation-link.entity';
-import { Feature } from './entities/feature.entity';
-import { Testimonial } from './entities/testimonial.entity';
-import { CallToActionBlock } from './entities/call-to-action-block.entity';
-import { FooterLink } from './entities/footer-link.entity';
+import type { LandingConfig } from './site-config.service';
 
-type MockRepository = {
-  find: jest.Mock;
-  create: jest.Mock;
-  save: jest.Mock;
-  merge: jest.Mock;
-  remove: jest.Mock;
+const createMock = <T extends object>(methods: (keyof T)[]): T => {
+  const mock: Partial<Record<keyof T, jest.Mock>> = {};
+  methods.forEach((method) => {
+    mock[method] = jest.fn();
+  });
+  return mock as T;
 };
 
-const createMockRepository = (): MockRepository => ({
-  find: jest.fn(),
-  create: jest.fn(),
-  save: jest.fn(),
-  merge: jest.fn(),
-  remove: jest.fn(),
-});
-
 describe('SiteConfigService', () => {
+  const aggregatorService = createMock<{ getLandingConfig: () => Promise<LandingConfig> }>([
+    'getLandingConfig',
+  ]);
+  const brandService = createMock<{ getBrand: () => Promise<unknown>; upsertBrand: (dto: unknown) => Promise<unknown> }>([
+    'getBrand',
+    'upsertBrand',
+  ]);
+  const heroService = createMock<{ getHero: () => Promise<unknown>; upsertHero: (dto: unknown) => Promise<unknown> }>([
+    'getHero',
+    'upsertHero',
+  ]);
+  const navigationService = createMock<{
+    listNavigation: () => Promise<unknown>;
+    createNavigation: (dto: unknown) => Promise<unknown>;
+    updateNavigation: (id: string, dto: unknown) => Promise<unknown>;
+    removeNavigation: (id: string) => Promise<void>;
+  }>(['listNavigation', 'createNavigation', 'updateNavigation', 'removeNavigation']);
+  const featureService = createMock<{
+    listFeatures: () => Promise<unknown>;
+    createFeature: (dto: unknown) => Promise<unknown>;
+    updateFeature: (id: string, dto: unknown) => Promise<unknown>;
+    removeFeature: (id: string) => Promise<void>;
+  }>(['listFeatures', 'createFeature', 'updateFeature', 'removeFeature']);
+  const testimonialService = createMock<{
+    listTestimonials: () => Promise<unknown>;
+    createTestimonial: (dto: unknown) => Promise<unknown>;
+    updateTestimonial: (id: string, dto: unknown) => Promise<unknown>;
+    removeTestimonial: (id: string) => Promise<void>;
+  }>(['listTestimonials', 'createTestimonial', 'updateTestimonial', 'removeTestimonial']);
+  const ctaService = createMock<{
+    listCtas: () => Promise<unknown>;
+    createCta: (dto: unknown) => Promise<unknown>;
+    updateCta: (id: string, dto: unknown) => Promise<unknown>;
+    removeCta: (id: string) => Promise<void>;
+  }>(['listCtas', 'createCta', 'updateCta', 'removeCta']);
+  const footerLinkService = createMock<{
+    listFooterLinks: () => Promise<unknown>;
+    createFooterLink: (dto: unknown) => Promise<unknown>;
+    updateFooterLink: (id: string, dto: unknown) => Promise<unknown>;
+    removeFooterLink: (id: string) => Promise<void>;
+  }>(['listFooterLinks', 'createFooterLink', 'updateFooterLink', 'removeFooterLink']);
+
   let service: SiteConfigService;
-  let brandRepository: MockRepository;
-  let navigationRepository: MockRepository;
-  let heroRepository: MockRepository;
-  let featureRepository: MockRepository;
-  let testimonialRepository: MockRepository;
-  let ctaRepository: MockRepository;
-  let footerRepository: MockRepository;
 
   beforeEach(() => {
-    brandRepository = createMockRepository();
-    navigationRepository = createMockRepository();
-    heroRepository = createMockRepository();
-    featureRepository = createMockRepository();
-    testimonialRepository = createMockRepository();
-    ctaRepository = createMockRepository();
-    footerRepository = createMockRepository();
-
+    jest.clearAllMocks();
     service = new SiteConfigService(
-      brandRepository as unknown as Repository<BrandSetting>,
-      navigationRepository as unknown as Repository<NavigationLink>,
-      heroRepository as unknown as Repository<HeroSection>,
-      featureRepository as unknown as Repository<Feature>,
-      testimonialRepository as unknown as Repository<Testimonial>,
-      ctaRepository as unknown as Repository<CallToActionBlock>,
-      footerRepository as unknown as Repository<FooterLink>,
+      aggregatorService,
+      brandService,
+      heroService,
+      navigationService,
+      featureService,
+      testimonialService,
+      ctaService,
+      footerLinkService,
     );
   });
 
-  it('upserts brand by updating existing record', async () => {
-    const existingBrand = {
-      id: 'brand-1',
-      companyName: 'Old Brand',
-    } as BrandSetting;
-    const dto = {
-      companyName: 'New Brand',
-      headingFont: 'Inter',
-    };
+  it('mengambil landing config dari aggregator', async () => {
+    const config = {
+      brand: null,
+      hero: null,
+      navigation: [],
+      features: [],
+      testimonials: [],
+      callsToAction: [],
+      footerLinks: [],
+    } satisfies LandingConfig;
+    aggregatorService.getLandingConfig.mockResolvedValue(config);
 
-    brandRepository.find.mockResolvedValue([existingBrand]);
-    const mergedBrand = { ...existingBrand, ...dto } as BrandSetting;
-    brandRepository.merge.mockReturnValue(mergedBrand);
-    brandRepository.save.mockResolvedValue(mergedBrand);
+    const result = await service.getLandingConfig();
 
-    const result = await service.upsertBrand(dto);
-
-    expect(brandRepository.merge).toHaveBeenCalledWith(existingBrand, dto);
-    expect(result).toEqual(mergedBrand);
+    expect(aggregatorService.getLandingConfig).toHaveBeenCalled();
+    expect(result).toBe(config);
   });
 
-  it('creates navigation link with sane defaults', async () => {
-    const createdLink = { id: 'nav-1' } as NavigationLink;
-    navigationRepository.create.mockImplementation(
-      (payload: Partial<NavigationLink>) =>
-        ({
-          ...payload,
-        }) as NavigationLink,
-    );
-    navigationRepository.save.mockResolvedValue(createdLink);
+  it('mendelegasikan operasi brand', async () => {
+    const dto = { companyName: 'New Brand' };
+    await service.upsertBrand(dto);
+    expect(brandService.upsertBrand).toHaveBeenCalledWith(dto);
 
-    const dto = { label: 'Home', url: '/' };
-    const result = await service.createNavigation(dto);
-
-    expect(navigationRepository.create).toHaveBeenCalledWith({
-      label: dto.label,
-      url: dto.url,
-      position: 0,
-      isPrimary: false,
-      isExternal: false,
-    });
-    expect(result).toEqual(createdLink);
+    await service.getBrand();
+    expect(brandService.getBrand).toHaveBeenCalled();
   });
 
-  it('upserts hero section with image as default media type', async () => {
-    heroRepository.find.mockResolvedValue([]);
-    const createdHero = {
-      id: 'hero-1',
-      heading: 'Grow faster',
-      mediaType: HeroMediaType.IMAGE,
-    } as HeroSection;
-    heroRepository.create.mockImplementation(
-      (payload: Partial<HeroSection>) =>
-        ({
-          ...payload,
-        }) as HeroSection,
-    );
-    heroRepository.save.mockResolvedValue(createdHero);
+  it('mendelegasikan operasi hero', async () => {
+    const dto = { heading: 'Grow' };
+    await service.upsertHero(dto);
+    expect(heroService.upsertHero).toHaveBeenCalledWith(dto);
 
-    const result = await service.upsertHero({
-      heading: 'Grow faster',
-    });
+    await service.getHero();
+    expect(heroService.getHero).toHaveBeenCalled();
+  });
 
-    expect(heroRepository.create).toHaveBeenCalledWith({
-      heading: 'Grow faster',
-      mediaType: HeroMediaType.IMAGE,
-    });
-    expect(result).toEqual(createdHero);
+  it('mendelegasikan operasi navigation', async () => {
+    await service.listNavigation();
+    expect(navigationService.listNavigation).toHaveBeenCalled();
+
+    const createDto = { label: 'Home' };
+    await service.createNavigation(createDto as never);
+    expect(navigationService.createNavigation).toHaveBeenCalledWith(createDto);
+
+    await service.updateNavigation('nav-id', { label: 'About' } as never);
+    expect(navigationService.updateNavigation).toHaveBeenCalledWith('nav-id', { label: 'About' });
+
+    await service.removeNavigation('nav-id');
+    expect(navigationService.removeNavigation).toHaveBeenCalledWith('nav-id');
+  });
+
+  it('mendelegasikan operasi features', async () => {
+    await service.listFeatures();
+    expect(featureService.listFeatures).toHaveBeenCalled();
+
+    await service.createFeature({ title: 'Automation' } as never);
+    expect(featureService.createFeature).toHaveBeenCalled();
+
+    await service.updateFeature('feature-id', { title: 'AI' } as never);
+    expect(featureService.updateFeature).toHaveBeenCalledWith('feature-id', { title: 'AI' });
+
+    await service.removeFeature('feature-id');
+    expect(featureService.removeFeature).toHaveBeenCalledWith('feature-id');
+  });
+
+  it('mendelegasikan operasi testimonials, CTA, dan footer links', async () => {
+    await service.listTestimonials();
+    expect(testimonialService.listTestimonials).toHaveBeenCalled();
+    await service.createTestimonial({ quote: 'Great!' } as never);
+    expect(testimonialService.createTestimonial).toHaveBeenCalled();
+
+    await service.listCtas();
+    expect(ctaService.listCtas).toHaveBeenCalled();
+    await service.createCta({ heading: 'Get started' } as never);
+    expect(ctaService.createCta).toHaveBeenCalled();
+
+    await service.listFooterLinks();
+    expect(footerLinkService.listFooterLinks).toHaveBeenCalled();
+    await service.createFooterLink({ label: 'Docs' } as never);
+    expect(footerLinkService.createFooterLink).toHaveBeenCalled();
   });
 });

@@ -10,6 +10,14 @@ import { Testimonial } from './entities/testimonial.entity';
 import { CallToActionBlock } from './entities/call-to-action-block.entity';
 import { FooterLink } from './entities/footer-link.entity';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
+import { BrandService } from './services/brand.service';
+import { HeroService } from './services/hero.service';
+import { NavigationService } from './services/navigation.service';
+import { FeatureService } from './services/feature.service';
+import { TestimonialService } from './services/testimonial.service';
+import { CtaService } from './services/cta.service';
+import { FooterLinkService } from './services/footer-link.service';
+import { SiteConfigAggregatorService } from './services/site-config-aggregator.service';
 
 @Module({
   imports: [
@@ -24,7 +32,31 @@ import { ApiKeyGuard } from '../common/guards/api-key.guard';
     ]),
   ],
   controllers: [SiteConfigController],
-  providers: [SiteConfigService, ApiKeyGuard],
-  exports: [SiteConfigService],
+  providers: [
+    // Domain services
+    BrandService,
+    HeroService,
+    NavigationService,
+    FeatureService,
+    TestimonialService,
+    CtaService,
+    FooterLinkService,
+    // Aggregator
+    SiteConfigAggregatorService,
+    // Facade (backward compatibility)
+    SiteConfigService,
+    // Guards
+    ApiKeyGuard,
+  ],
+  exports: [
+    SiteConfigService,
+    BrandService,
+    HeroService,
+    NavigationService,
+    FeatureService,
+    TestimonialService,
+    CtaService,
+    FooterLinkService,
+  ],
 })
 export class SiteConfigModule {}

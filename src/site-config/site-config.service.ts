@@ -1,286 +1,150 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateCtaBlockDto } from './dto/create-cta-block.dto';
-import { CreateFeatureDto } from './dto/create-feature.dto';
-import { CreateFooterLinkDto } from './dto/create-footer-link.dto';
-import { CreateNavigationLinkDto } from './dto/create-navigation-link.dto';
-import { CreateTestimonialDto } from './dto/create-testimonial.dto';
-import { UpdateCtaBlockDto } from './dto/update-cta-block.dto';
-import { UpdateFeatureDto } from './dto/update-feature.dto';
-import { UpdateFooterLinkDto } from './dto/update-footer-link.dto';
-import { UpdateNavigationLinkDto } from './dto/update-navigation-link.dto';
-import { UpdateTestimonialDto } from './dto/update-testimonial.dto';
+import { Injectable } from '@nestjs/common';
+import { BrandService } from './services/brand.service';
+import { HeroService } from './services/hero.service';
+import { NavigationService } from './services/navigation.service';
+import { FeatureService } from './services/feature.service';
+import { TestimonialService } from './services/testimonial.service';
+import { CtaService } from './services/cta.service';
+import { FooterLinkService } from './services/footer-link.service';
+import { SiteConfigAggregatorService } from './services/site-config-aggregator.service';
 import { UpsertBrandSettingDto } from './dto/upsert-brand-setting.dto';
 import { UpsertHeroSectionDto } from './dto/upsert-hero-section.dto';
-import { BrandSetting } from './entities/brand-setting.entity';
-import {
-  CallToActionBlock,
-  CtaVariant,
-} from './entities/call-to-action-block.entity';
-import { Feature } from './entities/feature.entity';
-import { FooterLink } from './entities/footer-link.entity';
-import { HeroMediaType, HeroSection } from './entities/hero-section.entity';
-import { NavigationLink } from './entities/navigation-link.entity';
-import { Testimonial } from './entities/testimonial.entity';
+import { CreateNavigationLinkDto } from './dto/create-navigation-link.dto';
+import { UpdateNavigationLinkDto } from './dto/update-navigation-link.dto';
+import { CreateFeatureDto } from './dto/create-feature.dto';
+import { UpdateFeatureDto } from './dto/update-feature.dto';
+import { CreateTestimonialDto } from './dto/create-testimonial.dto';
+import { UpdateTestimonialDto } from './dto/update-testimonial.dto';
+import { CreateCtaBlockDto } from './dto/create-cta-block.dto';
+import { UpdateCtaBlockDto } from './dto/update-cta-block.dto';
+import { CreateFooterLinkDto } from './dto/create-footer-link.dto';
+import { UpdateFooterLinkDto } from './dto/update-footer-link.dto';
+import type { LandingConfig } from './services/site-config-aggregator.service';
 
-export type LandingConfig = {
-  brand: BrandSetting | null;
-  hero: HeroSection | null;
-  navigation: NavigationLink[];
-  features: Feature[];
-  testimonials: Testimonial[];
-  callsToAction: CallToActionBlock[];
-  footerLinks: FooterLink[];
-};
+export type { LandingConfig };
 
+/**
+ * Facade service that delegates to domain-specific services.
+ * Maintains backward compatibility with existing controllers.
+ */
 @Injectable()
 export class SiteConfigService {
   constructor(
-    @InjectRepository(BrandSetting)
-    private readonly brandRepository: Repository<BrandSetting>,
-    @InjectRepository(NavigationLink)
-    private readonly navigationRepository: Repository<NavigationLink>,
-    @InjectRepository(HeroSection)
-    private readonly heroRepository: Repository<HeroSection>,
-    @InjectRepository(Feature)
-    private readonly featureRepository: Repository<Feature>,
-    @InjectRepository(Testimonial)
-    private readonly testimonialRepository: Repository<Testimonial>,
-    @InjectRepository(CallToActionBlock)
-    private readonly ctaRepository: Repository<CallToActionBlock>,
-    @InjectRepository(FooterLink)
-    private readonly footerRepository: Repository<FooterLink>,
+    private readonly aggregatorService: SiteConfigAggregatorService,
+    private readonly brandService: BrandService,
+    private readonly heroService: HeroService,
+    private readonly navigationService: NavigationService,
+    private readonly featureService: FeatureService,
+    private readonly testimonialService: TestimonialService,
+    private readonly ctaService: CtaService,
+    private readonly footerLinkService: FooterLinkService,
   ) {}
 
+  // Aggregation method
   async getLandingConfig(): Promise<LandingConfig> {
-    const [brand, hero] = await Promise.all([this.getBrand(), this.getHero()]);
-
-    const [navigation, features, testimonials, callsToAction, footerLinks] =
-      await Promise.all([
-        this.navigationRepository.find({
-          order: { position: 'ASC', label: 'ASC' },
-        }),
-        this.featureRepository.find({
-          order: { highlightOrder: 'ASC', title: 'ASC' },
-        }),
-        this.testimonialRepository.find({
-          order: { featured: 'DESC', authorName: 'ASC' },
-        }),
-        this.ctaRepository.find(),
-        this.footerRepository.find({
-          order: { groupName: 'ASC', position: 'ASC' },
-        }),
-      ]);
-
-    return {
-      brand,
-      hero,
-      navigation,
-      features,
-      testimonials,
-      callsToAction,
-      footerLinks,
-    };
+    return this.aggregatorService.getLandingConfig();
   }
 
-  async getBrand(): Promise<BrandSetting | null> {
-    const [record] = await this.brandRepository.find({ take: 1 });
-    return record ?? null;
+  // Brand delegation
+  async getBrand() {
+    return this.brandService.getBrand();
   }
 
   async upsertBrand(dto: UpsertBrandSettingDto) {
-    const existing = await this.getBrand();
-    if (existing) {
-      const updated = this.brandRepository.merge(existing, dto);
-      return this.brandRepository.save(updated);
-    }
-    const brand = this.brandRepository.create(dto);
-    return this.brandRepository.save(brand);
+    return this.brandService.upsertBrand(dto);
   }
 
-  async getHero(): Promise<HeroSection | null> {
-    const [record] = await this.heroRepository.find({ take: 1 });
-    return record ?? null;
+  // Hero delegation
+  async getHero() {
+    return this.heroService.getHero();
   }
 
   async upsertHero(dto: UpsertHeroSectionDto) {
-    const existing = await this.getHero();
-    if (existing) {
-      const updated = this.heroRepository.merge(existing, dto);
-      return this.heroRepository.save(updated);
-    }
-    const hero = this.heroRepository.create({
-      mediaType: dto.mediaType ?? HeroMediaType.IMAGE,
-      ...dto,
-    });
-    return this.heroRepository.save(hero);
+    return this.heroService.upsertHero(dto);
   }
 
+  // Navigation delegation
   async listNavigation() {
-    return this.navigationRepository.find({
-      order: { position: 'ASC', label: 'ASC' },
-    });
+    return this.navigationService.listNavigation();
   }
 
   async createNavigation(dto: CreateNavigationLinkDto) {
-    const link = this.navigationRepository.create({
-      isPrimary: dto.isPrimary ?? false,
-      isExternal: dto.isExternal ?? false,
-      position: dto.position ?? 0,
-      ...dto,
-    });
-    return this.navigationRepository.save(link);
+    return this.navigationService.createNavigation(dto);
   }
 
   async updateNavigation(id: string, dto: UpdateNavigationLinkDto) {
-    const link = await this.navigationRepository.preload({
-      id,
-      ...dto,
-    });
-    if (!link) {
-      throw new NotFoundException(`Navigation link ${id} not found`);
-    }
-    return this.navigationRepository.save(link);
+    return this.navigationService.updateNavigation(id, dto);
   }
 
   async removeNavigation(id: string) {
-    const link = await this.navigationRepository.findOne({ where: { id } });
-    if (!link) {
-      throw new NotFoundException(`Navigation link ${id} not found`);
-    }
-    await this.navigationRepository.remove(link);
+    return this.navigationService.removeNavigation(id);
   }
 
+  // Feature delegation
   async listFeatures() {
-    return this.featureRepository.find({
-      order: { highlightOrder: 'ASC', title: 'ASC' },
-    });
+    return this.featureService.listFeatures();
   }
 
   async createFeature(dto: CreateFeatureDto) {
-    const feature = this.featureRepository.create({
-      highlightOrder: dto.highlightOrder ?? 0,
-      ...dto,
-    });
-    return this.featureRepository.save(feature);
+    return this.featureService.createFeature(dto);
   }
 
   async updateFeature(id: string, dto: UpdateFeatureDto) {
-    const feature = await this.featureRepository.preload({
-      id,
-      ...dto,
-    });
-    if (!feature) {
-      throw new NotFoundException(`Feature ${id} not found`);
-    }
-    return this.featureRepository.save(feature);
+    return this.featureService.updateFeature(id, dto);
   }
 
   async removeFeature(id: string) {
-    const feature = await this.featureRepository.findOne({ where: { id } });
-    if (!feature) {
-      throw new NotFoundException(`Feature ${id} not found`);
-    }
-    await this.featureRepository.remove(feature);
+    return this.featureService.removeFeature(id);
   }
 
+  // Testimonial delegation
   async listTestimonials() {
-    return this.testimonialRepository.find({
-      order: { featured: 'DESC', authorName: 'ASC' },
-    });
+    return this.testimonialService.listTestimonials();
   }
 
   async createTestimonial(dto: CreateTestimonialDto) {
-    const testimonial = this.testimonialRepository.create({
-      featured: dto.featured ?? false,
-      ...dto,
-    });
-    return this.testimonialRepository.save(testimonial);
+    return this.testimonialService.createTestimonial(dto);
   }
 
   async updateTestimonial(id: string, dto: UpdateTestimonialDto) {
-    const testimonial = await this.testimonialRepository.preload({
-      id,
-      ...dto,
-    });
-    if (!testimonial) {
-      throw new NotFoundException(`Testimonial ${id} not found`);
-    }
-    return this.testimonialRepository.save(testimonial);
+    return this.testimonialService.updateTestimonial(id, dto);
   }
 
   async removeTestimonial(id: string) {
-    const testimonial = await this.testimonialRepository.findOne({
-      where: { id },
-    });
-    if (!testimonial) {
-      throw new NotFoundException(`Testimonial ${id} not found`);
-    }
-    await this.testimonialRepository.remove(testimonial);
+    return this.testimonialService.removeTestimonial(id);
   }
 
+  // CTA delegation
   async listCtas() {
-    return this.ctaRepository.find();
+    return this.ctaService.listCtas();
   }
 
   async createCta(dto: CreateCtaBlockDto) {
-    const block = this.ctaRepository.create({
-      variant: dto.variant ?? CtaVariant.SOLID,
-      ...dto,
-    });
-    return this.ctaRepository.save(block);
+    return this.ctaService.createCta(dto);
   }
 
   async updateCta(id: string, dto: UpdateCtaBlockDto) {
-    const block = await this.ctaRepository.preload({
-      id,
-      ...dto,
-    });
-    if (!block) {
-      throw new NotFoundException(`CTA block ${id} not found`);
-    }
-    return this.ctaRepository.save(block);
+    return this.ctaService.updateCta(id, dto);
   }
 
   async removeCta(id: string) {
-    const block = await this.ctaRepository.findOne({ where: { id } });
-    if (!block) {
-      throw new NotFoundException(`CTA block ${id} not found`);
-    }
-    await this.ctaRepository.remove(block);
+    return this.ctaService.removeCta(id);
   }
 
+  // Footer Link delegation
   async listFooterLinks() {
-    return this.footerRepository.find({
-      order: { groupName: 'ASC', position: 'ASC' },
-    });
+    return this.footerLinkService.listFooterLinks();
   }
 
   async createFooterLink(dto: CreateFooterLinkDto) {
-    const link = this.footerRepository.create({
-      position: dto.position ?? 0,
-      ...dto,
-    });
-    return this.footerRepository.save(link);
+    return this.footerLinkService.createFooterLink(dto);
   }
 
   async updateFooterLink(id: string, dto: UpdateFooterLinkDto) {
-    const link = await this.footerRepository.preload({
-      id,
-      ...dto,
-    });
-    if (!link) {
-      throw new NotFoundException(`Footer link ${id} not found`);
-    }
-    return this.footerRepository.save(link);
+    return this.footerLinkService.updateFooterLink(id, dto);
   }
 
   async removeFooterLink(id: string) {
-    const link = await this.footerRepository.findOne({ where: { id } });
-    if (!link) {
-      throw new NotFoundException(`Footer link ${id} not found`);
-    }
-    await this.footerRepository.remove(link);
+    return this.footerLinkService.removeFooterLink(id);
   }
 }
