@@ -9,6 +9,7 @@ import { SiteConfigModule } from './site-config/site-config.module';
 import { BlogModule } from './blog/blog.module';
 import { SeoModule } from './seo/seo.module';
 import { AuthModule } from './auth/auth.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AuthModule } from './auth/auth.module';
     BlogModule,
     SeoModule,
     AuthModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

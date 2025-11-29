@@ -11,6 +11,7 @@ import { Author } from '../blog/entities/author.entity';
 import { Category } from '../blog/entities/category.entity';
 import { Post } from '../blog/entities/post.entity';
 import { User } from '../auth/entities/user.entity';
+import { MediaAsset } from '../media/entities/media-asset.entity';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -33,6 +34,7 @@ const dataSource = new DataSource({
     Category,
     Post,
     User,
+    MediaAsset,
   ],
   migrations: ['dist/database/migrations/*.js'],
 });

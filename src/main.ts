@@ -1,11 +1,13 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { resolve } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -33,6 +35,19 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService);
+
+  const uploadDir = configService.get<string>('media.uploadDir', './uploads/media');
+  const mediaBaseUrl = configService.get<string>('media.baseUrl', '/media');
+  const staticPath = uploadDir.startsWith('/')
+    ? uploadDir
+    : resolve(process.cwd(), uploadDir);
+  const mediaPathname = new URL(mediaBaseUrl, configService.get<string>('app.baseUrl', 'http://localhost:3000')).pathname;
+  const mediaPrefix = mediaPathname.endsWith('/') ? mediaPathname : `${mediaPathname}/`;
+
+  app.useStaticAssets(staticPath, {
+    prefix: mediaPrefix,
+  });
+
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port);
 }

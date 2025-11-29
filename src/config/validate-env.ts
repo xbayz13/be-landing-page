@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsBoolean,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -19,9 +20,8 @@ class EnvironmentVariables {
   @IsString()
   JWT_SECRET!: string;
 
-  @IsOptional()
-  @IsString()
-  JWT_EXPIRES_IN?: string;
+  @IsInt()
+  JWT_EXPIRES_IN!: number;
 
   @IsString()
   DATABASE_HOST!: string;
@@ -52,6 +52,31 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   SUPERADMIN_PASSWORD?: string;
+
+  @IsIn(['local', 's3'])
+  MEDIA_STORAGE_DRIVER!: string;
+
+  @IsString()
+  MEDIA_UPLOAD_DIR!: string;
+
+  @IsString()
+  MEDIA_BASE_URL!: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_S3_BUCKET?: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_S3_REGION?: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_ACCESS_KEY_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_SECRET_ACCESS_KEY?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
@@ -61,6 +86,7 @@ export function validateEnv(config: Record<string, unknown>) {
       ...config,
       PORT: Number(config.PORT) || 3000,
       DATABASE_PORT: Number(config.DATABASE_PORT) || 5432,
+      JWT_EXPIRES_IN: Number(config.JWT_EXPIRES_IN) || 3600,
       DATABASE_SSL:
         config.DATABASE_SSL === true ||
         config.DATABASE_SSL === 'true' ||

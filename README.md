@@ -7,6 +7,7 @@ API NestJS untuk mengelola konten landing page perusahaan + blog. Struktur ini m
 - **Site Config Module** – menyimpan identitas brand, palet warna, header/hero, navigasi, fitur utama, testimoni, CTA, dan tautan footer.
 - **Blog Module** – CRUD untuk author, kategori, dan blog post (beserta relasi & status publikasi).
 - **SEO Module** – metadata builder, sitemap.xml, dan RSS feed yang mengambil data dari Site Config + Blog.
+- **Media Module** – upload & katalog aset (gambar, video, dsb) dengan driver lokal bawaan dan opsi migrasi ke AWS S3.
 - **TypeORM + PostgreSQL** – koneksi dikonfigurasi lewat environment variable, `DATABASE_SYNCHRONIZE` bisa dimatikan di staging/production.
 - **Validasi input** – global `ValidationPipe` memastikan seluruh DTO sudah tervalidasi.
 
@@ -56,6 +57,13 @@ JWT_SECRET=super-secret-change-me      # secret untuk tanda tangan JWT
 JWT_EXPIRES_IN=3600                    # durasi token dalam detik (default 1 jam)
 SUPERADMIN_EMAIL=superadmin@lp-cms.local   # optional: override default seed email
 SUPERADMIN_PASSWORD=Pass@word123           # optional: override default seed password
+MEDIA_STORAGE_DRIVER=local               # local | s3
+MEDIA_UPLOAD_DIR=./uploads/media
+MEDIA_BASE_URL=http://localhost:3000/media
+AWS_S3_BUCKET=
+AWS_S3_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
 ```
 
 **Catatan untuk PostgreSQL Homebrew:**
@@ -85,6 +93,14 @@ Semua endpoint berada di bawah `/api`.
 - `GET|POST|PATCH|DELETE /blog/posts`
   - Query `status`, `authorId`, `categoryId`, `page`, `limit` untuk filter & pagination.
 
+### Media
+
+- `GET /media` – daftar aset dengan pagination + pencarian nama file/mime type.
+- `POST /media` – upload file (`multipart/form-data`, field `file`, max 10MB). Dilindungi JWT.
+- `DELETE /media/:id` – hapus metadata sekaligus file fisik (lokal/S3). Dilindungi JWT.
+- Default driver **local** menyimpan file di `MEDIA_UPLOAD_DIR` dan otomatis disajikan lewat `/media/*`.
+- Jika mengganti `MEDIA_STORAGE_DRIVER=s3`, lengkapi variabel AWS di atas (bucket, region, key/secret). URL file akan mengikuti `MEDIA_BASE_URL` sehingga mudah diarahkan ke CDN/custom domain.
+
 ### SEO Tools
 
 - `GET /seo/metadata?postSlug=<slug>` – metadata default (title, desc, image) atau metadata spesifik artikel.
@@ -102,7 +118,6 @@ Semua endpoint berada di bawah `/api`.
 - Tambah autentikasi / role.
 - Migrasikan schema ke migration TypeORM ketika struktur mulai stabil.
 - Tambah endpoint agregasi (misal: hero + latest blog posts).
-- Integrasi storage untuk upload aset (logo, hero media, cover blog).
 
 ## Testing & Build
 
